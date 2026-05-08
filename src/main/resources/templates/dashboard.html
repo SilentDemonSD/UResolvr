@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UResolvr — Dashboard</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div class="dashboard-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-icon">U</div>
+            <span class="logo-text text-gradient">UResolvr</span>
+        </div>
+        <nav class="sidebar-nav">
+            <button class="nav-item active" data-page="overview" onclick="showPage('overview', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                Dashboard
+            </button>
+            <button class="nav-item" data-page="routes" onclick="showPage('routes', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                Routes
+            </button>
+            <button class="nav-item" data-page="analytics" onclick="showPage('analytics', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+                Analytics
+            </button>
+            <button class="nav-item" data-page="security" onclick="showPage('security', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Security
+            </button>
+        </nav>
+        <div style="padding:12px 16px;border-top:1px solid var(--border);margin-top:auto;">
+            <button class="nav-item" onclick="logout()" style="color:var(--danger);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Sign Out
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+        <!-- Overview Page -->
+        <div id="page-overview" class="page-section fade-in">
+            <div class="page-header">
+                <h1>Dashboard</h1>
+                <button class="btn btn-primary" onclick="openCreateModal()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    New Route
+                </button>
+            </div>
+            <div class="stat-grid" id="statsGrid">
+                <div class="stat-card"><div class="stat-label">Total Routes</div><div class="stat-value gradient" id="stat-routes">—</div></div>
+                <div class="stat-card"><div class="stat-label">Resolutions (24h)</div><div class="stat-value success" id="stat-resolutions">—</div></div>
+                <div class="stat-card"><div class="stat-label">Blocked (24h)</div><div class="stat-value danger" id="stat-blocked">—</div></div>
+                <div class="stat-card"><div class="stat-label">Success Rate</div><div class="stat-value warning" id="stat-rate">—</div></div>
+            </div>
+            <h3 style="margin-bottom:16px;">Recent Routes</h3>
+            <div class="table-container">
+                <table>
+                    <thead><tr>
+                        <th>Token</th><th>Label</th><th>Status</th><th>Resolves</th><th>Created</th><th>Actions</th>
+                    </tr></thead>
+                    <tbody id="routesTableBody">
+                        <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">Loading routes...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Routes Page -->
+        <div id="page-routes" class="page-section" style="display:none;">
+            <div class="page-header">
+                <h1>Route Management</h1>
+                <button class="btn btn-primary" onclick="openCreateModal()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    New Route
+                </button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead><tr>
+                        <th>Token</th><th>Resolve URL</th><th>Label</th><th>Status</th><th>Resolves</th><th>Expires</th><th>Actions</th>
+                    </tr></thead>
+                    <tbody id="allRoutesTable">
+                        <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Analytics Page -->
+        <div id="page-analytics" class="page-section" style="display:none;">
+            <div class="page-header"><h1>Analytics</h1></div>
+            <div class="stat-grid" id="analyticsStats"></div>
+            <div class="card" id="outcomesCard" style="padding:24px;">
+                <h3 style="margin-bottom:16px;">Resolution Outcomes (24h)</h3>
+                <div id="outcomesChart"></div>
+            </div>
+        </div>
+
+        <!-- Security Page -->
+        <div id="page-security" class="page-section" style="display:none;">
+            <div class="page-header"><h1>Security Monitor</h1></div>
+            <div class="stat-grid">
+                <div class="stat-card"><div class="stat-label">Encryption</div><div class="stat-value" style="font-size:1rem;color:var(--success);">AES-256-GCM ✓</div></div>
+                <div class="stat-card"><div class="stat-label">Token Signing</div><div class="stat-value" style="font-size:1rem;color:var(--success);">HMAC-SHA256 ✓</div></div>
+                <div class="stat-card"><div class="stat-label">Auth</div><div class="stat-value" style="font-size:1rem;color:var(--success);">JWT RS256 ✓</div></div>
+                <div class="stat-card"><div class="stat-label">PQC Ready</div><div class="stat-value" style="font-size:1rem;color:var(--warning);">Abstraction Layer</div></div>
+            </div>
+            <div class="card" style="margin-top:20px;">
+                <h3 style="margin-bottom:12px;">Threat Summary</h3>
+                <p style="color:var(--text-secondary);">Blocked requests, trust score violations, and security events will appear here as traffic flows through your routes.</p>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Create Route Modal -->
+<div class="modal-overlay" id="createModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2>Create Secure Route</h2>
+            <button class="modal-close" onclick="closeCreateModal()">&times;</button>
+        </div>
+        <form id="createRouteForm">
+            <div class="form-group">
+                <label class="form-label">Destination URL</label>
+                <input type="url" id="cr-destination" class="form-input" placeholder="https://example.com/secret-page" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Label (optional)</label>
+                <input type="text" id="cr-label" class="form-input" placeholder="My secret link">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="form-group">
+                    <label class="form-label">Max Resolves</label>
+                    <input type="number" id="cr-maxResolves" class="form-input" placeholder="Unlimited" min="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">TTL (hours)</label>
+                    <input type="number" id="cr-ttl" class="form-input" placeholder="Never expires" min="1">
+                </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+                <label class="toggle">
+                    <input type="checkbox" id="cr-oneTime">
+                    <span class="toggle-slider"></span>
+                </label>
+                <span style="font-size:0.9rem;color:var(--text-secondary);">One-time use (self-destructs after 1 resolve)</span>
+            </div>
+            <div id="cr-error" style="color:var(--danger);font-size:0.85rem;margin-bottom:12px;display:none;"></div>
+            <button type="submit" class="btn btn-primary btn-full" id="cr-submit">Create Secure Route</button>
+        </form>
+
+        <!-- Success display -->
+        <div id="cr-success" style="display:none;text-align:center;padding:16px 0;">
+            <div style="font-size:2rem;margin-bottom:12px;">🔒</div>
+            <p style="color:var(--text-secondary);margin-bottom:16px;">Route created successfully!</p>
+            <div style="margin-bottom:16px;">
+                <label class="form-label">Secure Resolve URL</label>
+                <div id="cr-resolveUrl" class="token-display" style="padding:12px;font-size:0.95rem;word-break:break-all;"></div>
+            </div>
+            <button class="btn btn-secondary btn-full" onclick="copyUrl()">Copy URL</button>
+            <button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="closeCreateModal(); loadRoutes();">Done</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container" id="toasts"></div>
+
+<script>
+const API = '/api/v1';
+const getToken = () => localStorage.getItem('uresolvr_token');
+
+// Auth check
+if (!getToken()) {
+    fetch('/api/v1/auth/setup/status')
+        .then(r => r.json())
+        .then(d => { window.location.href = d.setupRequired ? '/setup' : '/login'; });
+}
+
+function headers() {
+    return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() };
+}
+
+async function api(path, opts = {}) {
+    const res = await fetch(API + path, { headers: headers(), ...opts });
+    if (res.status === 401) { logout(); return; }
+    return res;
+}
+
+// ── Navigation ──
+function showPage(page, el) {
+    document.querySelectorAll('.page-section').forEach(p => p.style.display = 'none');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + page).style.display = 'block';
+    if (el) el.classList.add('active');
+    if (page === 'overview' || page === 'routes') loadRoutes();
+    if (page === 'analytics') loadAnalytics();
+}
+
+// ── Load Data ──
+async function loadRoutes() {
+    try {
+        const res = await api('/routes');
+        const routes = await res.json();
+        renderRoutes(routes);
+        loadStats();
+    } catch (e) { console.error(e); }
+}
+
+function renderRoutes(routes) {
+    const body = document.getElementById('routesTableBody');
+    const allBody = document.getElementById('allRoutesTable');
+    
+    if (!routes.length) {
+        const empty = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">No routes yet. Create your first secure route!</td></tr>';
+        body.innerHTML = empty;
+        allBody.innerHTML = empty;
+        return;
+    }
+
+    const rows = routes.map(r => `
+        <tr>
+            <td><span class="token-display" onclick="copyText('${r.resolveUrl}')">${r.token}</span></td>
+            <td>${r.label || '—'}</td>
+            <td><span class="badge badge-${r.status==='ACTIVE'?'success':r.status==='EXPIRED'?'warning':'danger'}">${r.status}</span></td>
+            <td>${r.resolveCount}${r.maxResolves ? '/' + r.maxResolves : ''}</td>
+            <td style="font-size:0.8rem;">${new Date(r.createdAt).toLocaleDateString()}</td>
+            <td>
+                ${r.status==='ACTIVE'?`<button class="btn btn-danger btn-sm" onclick="revokeRoute('${r.id}')">Revoke</button>`:''}
+            </td>
+        </tr>
+    `).join('');
+    body.innerHTML = rows;
+
+    const allRows = routes.map(r => `
+        <tr>
+            <td><span class="token-display">${r.token}</span></td>
+            <td style="font-size:0.8rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;">${r.resolveUrl}</td>
+            <td>${r.label || '—'}</td>
+            <td><span class="badge badge-${r.status==='ACTIVE'?'success':r.status==='EXPIRED'?'warning':'danger'}">${r.status}</span></td>
+            <td>${r.resolveCount}</td>
+            <td style="font-size:0.8rem;">${r.expiresAt ? new Date(r.expiresAt).toLocaleString() : 'Never'}</td>
+            <td>${r.status==='ACTIVE'?`<button class="btn btn-danger btn-sm" onclick="revokeRoute('${r.id}')">Revoke</button>`:''}</td>
+        </tr>
+    `).join('');
+    allBody.innerHTML = allRows;
+}
+
+async function loadStats() {
+    try {
+        const res = await api('/analytics/summary?hours=24');
+        const data = await res.json();
+        document.getElementById('stat-routes').textContent = data.totalRoutes || 0;
+        document.getElementById('stat-resolutions').textContent = data['resolutionsLast24h'] || 0;
+
+        const outRes = await api('/analytics/outcomes?hours=24');
+        const outcomes = await outRes.json();
+        const total = Object.values(outcomes).reduce((a, b) => a + b, 0);
+        const success = outcomes.SUCCESS || 0;
+        const blocked = total - success;
+        document.getElementById('stat-blocked').textContent = blocked;
+        document.getElementById('stat-rate').textContent = total > 0 ? Math.round(success / total * 100) + '%' : '—';
+    } catch (e) { console.error(e); }
+}
+
+async function loadAnalytics() {
+    await loadStats();
+    try {
+        const outRes = await api('/analytics/outcomes?hours=24');
+        const outcomes = await outRes.json();
+        const chart = document.getElementById('outcomesChart');
+        if (!Object.keys(outcomes).length) {
+            chart.innerHTML = '<p style="color:var(--text-muted);padding:20px;">No resolution data yet.</p>';
+            return;
+        }
+        chart.innerHTML = Object.entries(outcomes).map(([k, v]) => {
+            const color = k === 'SUCCESS' ? 'var(--success)' : k.startsWith('BLOCKED') ? 'var(--danger)' : 'var(--warning)';
+            return `<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+                <span style="width:160px;font-size:0.8rem;color:var(--text-muted);">${k}</span>
+                <div style="flex:1;height:24px;background:var(--bg-input);border-radius:4px;overflow:hidden;">
+                    <div style="height:100%;width:${Math.min(v * 10, 100)}%;background:${color};border-radius:4px;transition:width 0.5s;"></div>
+                </div>
+                <span style="font-weight:600;min-width:40px;text-align:right;">${v}</span>
+            </div>`;
+        }).join('');
+    } catch (e) {}
+}
+
+// ── Create Route ──
+function openCreateModal() {
+    document.getElementById('createModal').classList.add('active');
+    document.getElementById('createRouteForm').style.display = 'block';
+    document.getElementById('cr-success').style.display = 'none';
+    document.getElementById('createRouteForm').reset();
+}
+
+function closeCreateModal() {
+    document.getElementById('createModal').classList.remove('active');
+}
+
+document.getElementById('createRouteForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('cr-submit');
+    const error = document.getElementById('cr-error');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Encrypting...';
+    error.style.display = 'none';
+
+    const body = {
+        destination: document.getElementById('cr-destination').value,
+        label: document.getElementById('cr-label').value || null,
+        maxResolves: document.getElementById('cr-maxResolves').value ? parseInt(document.getElementById('cr-maxResolves').value) : null,
+        ttlHours: document.getElementById('cr-ttl').value ? parseInt(document.getElementById('cr-ttl').value) : null,
+        oneTimeUse: document.getElementById('cr-oneTime').checked,
+        requireAuth: false
+    };
+
+    try {
+        const res = await api('/routes', { method: 'POST', body: JSON.stringify(body) });
+        if (!res.ok) { const d = await res.json(); throw new Error(d.detail || 'Failed'); }
+        const data = await res.json();
+        document.getElementById('createRouteForm').style.display = 'none';
+        document.getElementById('cr-success').style.display = 'block';
+        document.getElementById('cr-resolveUrl').textContent = data.resolveUrl;
+        toast('Route created successfully!', 'success');
+    } catch (err) {
+        error.textContent = err.message;
+        error.style.display = 'block';
+    }
+    btn.disabled = false;
+    btn.textContent = 'Create Secure Route';
+});
+
+async function revokeRoute(id) {
+    if (!confirm('Revoke this route? It will no longer resolve.')) return;
+    await api('/routes/' + id, { method: 'DELETE' });
+    toast('Route revoked', 'info');
+    loadRoutes();
+}
+
+function copyUrl() {
+    const url = document.getElementById('cr-resolveUrl').textContent;
+    navigator.clipboard.writeText(url);
+    toast('URL copied to clipboard!', 'success');
+}
+
+function copyText(text) {
+    navigator.clipboard.writeText(text);
+    toast('Copied!', 'success');
+}
+
+function logout() {
+    localStorage.removeItem('uresolvr_token');
+    localStorage.removeItem('uresolvr_refresh');
+    window.location.href = '/login';
+}
+
+function toast(msg, type = 'info') {
+    const container = document.getElementById('toasts');
+    const el = document.createElement('div');
+    el.className = 'toast ' + type;
+    el.textContent = msg;
+    container.appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+}
+
+// Initial load
+loadRoutes();
+</script>
+</body>
+</html>

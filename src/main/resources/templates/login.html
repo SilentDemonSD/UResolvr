@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UResolvr — Login</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="auth-layout">
+    <div class="auth-card fade-in">
+        <div style="text-align:center; margin-bottom:32px;">
+            <div style="display:inline-flex;align-items:center;gap:12px;margin-bottom:16px;">
+                <div style="width:48px;height:48px;background:var(--accent-gradient);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;color:white;">U</div>
+                <span style="font-size:1.5rem;font-weight:800;letter-spacing:-0.03em;" class="text-gradient">UResolvr</span>
+            </div>
+            <p style="color:var(--text-secondary);font-size:0.95rem;">Sign in to your account</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" id="email" class="form-input" placeholder="admin@example.com" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" id="password" class="form-input" placeholder="Enter your password" required>
+            </div>
+            <div id="error" style="color:var(--danger);font-size:0.85rem;margin-bottom:12px;display:none;"></div>
+            <button type="submit" class="btn btn-primary btn-full btn-lg" id="submitBtn">
+                Sign In
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+// Check if already logged in
+if (localStorage.getItem('uresolvr_token')) {
+    window.location.href = '/dashboard';
+}
+
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    const error = document.getElementById('error');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Signing in...';
+    error.style.display = 'none';
+
+    try {
+        const res = await fetch('/api/v1/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
+            })
+        });
+
+        if (!res.ok) throw new Error('Invalid email or password');
+
+        const data = await res.json();
+        localStorage.setItem('uresolvr_token', data.accessToken);
+        localStorage.setItem('uresolvr_refresh', data.refreshToken);
+        window.location.href = '/dashboard';
+    } catch (err) {
+        error.textContent = err.message;
+        error.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
+    }
+});
+</script>
+</body>
+</html>

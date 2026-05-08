@@ -1,0 +1,16 @@
+package io.uresolvr.domain;
+
+public enum ResolutionOutcome {
+    SUCCESS,
+    BLOCKED_EXPIRED,
+    BLOCKED_REVOKED,
+    BLOCKED_MAX_RESOLVES,
+    BLOCKED_REGION,
+    BLOCKED_DEVICE,
+    BLOCKED_IP,
+    BLOCKED_TRUST_SCORE,
+    BLOCKED_RATE_LIMIT,
+    BLOCKED_BOT,
+    NOT_FOUND,
+    ERROR
+}

@@ -1,0 +1,132 @@
+####################################################################
+# UResolvr — Default Configuration (H2 embedded, zero-config)
+####################################################################
+
+server:
+  port: ${URESOLVR_PORT:8080}
+  shutdown: graceful
+
+spring:
+  application:
+    name: uresolvr
+
+  # --- H2 Embedded Database (default) ---
+  r2dbc:
+    url: r2dbc:h2:file:///./data/uresolvr;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    username: sa
+    password:
+  
+  flyway:
+    enabled: true
+    url: jdbc:h2:file:./data/uresolvr;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    user: sa
+    password:
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  # --- Cache (Caffeine in-memory, default) ---
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=10000,expireAfterWrite=300s
+
+  # --- Thymeleaf (Web UI) ---
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    cache: false
+
+  # --- Jackson ---
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+
+# --- UResolvr Custom Config ---
+uresolvr:
+  crypto:
+    algorithm: AES_GCM  # AES_GCM or CHACHA20
+    master-key: ${URESOLVR_MASTER_KEY:}  # Base64-encoded 256-bit key (auto-generated if empty)
+    key-rotation-days: 90
+  
+  token:
+    length: 10  # Characters in generated tokens
+    alphabet: base62  # base62 or base58
+  
+  security:
+    jwt:
+      secret: ${URESOLVR_JWT_SECRET:}  # Auto-generated if empty
+      expiration-minutes: 60
+      refresh-expiration-days: 30
+      issuer: uresolvr
+    rate-limit:
+      enabled: true
+      requests-per-minute: 120
+      burst-size: 30
+    trust-scoring:
+      enabled: true
+      min-score-for-resolve: 20
+  
+  resolution:
+    default-ttl-hours: 720  # 30 days
+    max-ttl-hours: 8760     # 365 days
+    cache-ttl-seconds: 300
+    one-time-lock-seconds: 60
+  
+  analytics:
+    enabled: true
+    async: true
+    batch-size: 100
+    flush-interval-seconds: 5
+
+  setup:
+    first-run: true  # Shows setup wizard on first launch
+
+# --- Actuator ---
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+  metrics:
+    tags:
+      application: uresolvr
+
+# --- Logging ---
+logging:
+  level:
+    io.uresolvr: DEBUG
+    org.springframework.r2dbc: INFO
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+---
+####################################################################
+# PostgreSQL Profile
+####################################################################
+spring:
+  config:
+    activate:
+      on-profile: postgres
+
+  r2dbc:
+    url: r2dbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:uresolvr}
+    username: ${DB_USER:uresolvr}
+    password: ${DB_PASSWORD:uresolvr}
+    pool:
+      initial-size: 5
+      max-size: 20
+      max-idle-time: 30m
+
+  flyway:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:uresolvr}
+    user: ${DB_USER:uresolvr}
+    password: ${DB_PASSWORD:uresolvr}
+    locations: classpath:db/migration
+
+logging:
+  level:
+    io.uresolvr: INFO
